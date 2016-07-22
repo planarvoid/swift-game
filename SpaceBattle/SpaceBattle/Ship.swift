@@ -44,56 +44,64 @@ public class Ship {
         
     }
     
-    public func target(scene: SKScene, target: CGPoint) {
-//        self.target = target
-//        test(0, y: 0)
-//        test(10, y: 0)
-//        test(0, y: 10)
-//        test(10, y: 10)
-//        test(-10, y: 0)
-//        test(0, y: -10)
-//        test(-10, y: 10)
-//        test(10, y: -10)
-//        test(-10, y: 0)
-//        test(-10, y: -10)
+    public func circle() {
+        //node.runAction(SKAction.repeatActionForever(SKAction.rotateByAngle(10, duration: 5)))
+        //node.runAction(SKAction.rotateByAngle(10, duration: 5))
+        node.physicsBody!.applyImpulse(CGVector(dx: 0, dy: 50))
+        node.physicsBody!.applyAngularImpulse(CGFloat(10))
+        
+        //node.runAction(SKAction.applyImpulse(CGVector(dx: 100, dy: 100), duration: 50))
+    }
+    
+    public func move(position: CGPoint) {
+        let rotateAction = "rotate"
+        let moveAction = "move"
+        node.removeActionForKey(rotateAction)
+        node.removeActionForKey(moveAction)
+        node.runAction(rotate(position), withKey: rotateAction)
+        node.runAction(SKAction.moveTo(position, duration: 5), withKey: moveAction)
+
+    }
+    
+    func rotate(position: CGPoint) -> SKAction {
+        let rotation = self.getRotation(self.node.position, endingPoint: position)// * -1
+        let vysledek = rotation - Float(self.node.zRotation)
+        var time = Double(vysledek)
+        if (time < 0) {
+            time *= -1
+        }
+        return SKAction.rotateByAngle(CGFloat(vysledek), duration:time)
+    }
+    
+    public func target(scene: SKScene, target: Ship) {
         if (!shooting) {
+            node.runAction(rotate(target.node.position), completion: startShooting(scene, target: target))
+        }
+     }
+    
+    func startShooting(scene: SKScene, target: Ship) -> (() -> Void) {
+        return {
             let qualityOfServiceClass = QOS_CLASS_BACKGROUND
             let backgroundQueue = dispatch_get_global_queue(qualityOfServiceClass, 0)
-            shooting = true;
             dispatch_async(backgroundQueue, {
-                print("This is run on the background queue")
-                let rotation = self.getRotation(self.node.position, endingPoint: target)// * -1
+                print("Starting shooting")
                 
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    print("Rotating")
-                    NSLog("by: %f", rotation);
-                    NSLog("z: %f", Float(self.node.zRotation));
-                    let vysledek = rotation - Float(self.node.zRotation)
-                    NSLog("vysledek: %f", vysledek);
-                    //self.shoot(scene, direction: target.node.position)
+                var counter = 5
+                self.shooting = true
+                while(counter > 0 && self.shooting) {
                     
-                    let action = SKAction.rotateByAngle(CGFloat(vysledek), duration:1)
-                    self.node.runAction(action, completion: {
-                        print("Completed")
-
-                        var counter = 5
-                        while(counter > 0) {
-                            //dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                print("Shooting")
-                                //self.shoot(scene, direction: target.node.position)
-                                self.shoot(scene)
-                            //})
-                            sleep(2)
-                            counter -= 1
-                        }
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        print("Shooting")
+                        self.shoot(scene)
                     })
-                    //self.shoot(scene)
-                })
-                //self.target = nil
+                    
+                    sleep(2)
+                    counter -= 1
+                }
                 self.shooting = false;
             })
         }
-     }
+    }
     
     public func shoot(scene: SKScene, direction: CGPoint) {
         NSLog("%f",node.zRotation);

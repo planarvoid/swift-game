@@ -54,6 +54,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVectorMake(0, 0)
         physicsWorld.contactDelegate = self
         
+        let borderBody = SKPhysicsBody(edgeLoopFromRect: self.frame)
+        borderBody.friction = 0
+        self.physicsBody = physicsBody
+        
         //self.addChild(myLabel)
         let name1 = "ship1"
         let name2 = "ship2"
@@ -65,6 +69,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for (_, ship) in ships {
             ship.draw(self)
         }
+        ships[name2]!.circle()
         //mainShip!.rotate()
         //self.addChild(ship.draw())
         
@@ -81,19 +86,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         //var selected = false
-        mainShip!.target(self, target: touchLocation)
-        /*
+        //mainShip!.target(self, target: touchLocation)
+        var targetFound = false
         for (_, ship) in ships {
-            if (ship.node.containsPoint(touchLocation)) {
-                if (mainShip!.name() == ship.name()) {
-                    //mainShip = ship
-                    selected = true
-                } else {
+            if (!targetFound && ship.node.containsPoint(touchLocation)) {
+                if (mainShip!.name() != ship.name()) {
                     mainShip!.target(self, target: ship)
+                    targetFound = true
                 }
             }
         }
-        */
+        if (!targetFound) {
+            mainShip!.move(touchLocation)
+        }
+        
         //if (mainShip != nil && !selected) {
             //mainShip!.shoot(self)
         //}
